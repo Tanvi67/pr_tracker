@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  client:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-client:latest
+    build:
+      context: ./pr-tracker-client
+      dockerfile: Dockerfile
+      args:
+        VITE_SERVER_ENDPOINT: http://3.26.11.213
+    container_name: pr-tracker-client
+    ports:
+      - "80:80"
+    depends_on:
+      - service-router
+    networks:
+      - pr-tracker-net
+
+  service-router:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-service-router:latest
+    build:
+      context: ./pr-tracker-service-router
+      dockerfile: Dockerfile
+    container_name: pr-tracker-service-router
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+    depends_on:
+      - main-backend
+      - backend
+      - ai-agent
+      - mongodb
+    networks:
+      - pr-tracker-net
+
+  main-backend:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-main-backend:latest
+    build:
+      context: ./pr-tracker-main-backend
+      dockerfile: Dockerfile
+    container_name: pr-tracker-main-backend
+    ports:
+      - "5002:5002"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5002
+    networks:
+      - pr-tracker-net
+
+  ai-agent:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-ai-agent:latest
+    build:
+      context: ./pr-tracker-ai-agent
+      dockerfile: Dockerfile
+    container_name: pr-tracker-ai-agent
+    ports:
+      - "5003:5003"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5003
+    networks:
+      - pr-tracker-net
+
+  mongodb:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-mongodb:latest
+    build:
+      context: ./pr-tracker-mongodb
+      dockerfile: Dockerfile
+    container_name: pr-tracker-mongodb
+    ports:
+      - "5004:5004"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5004
+    networks:
+      - pr-tracker-net
+
+  backend:
+    image: ghcr.io/satyam-prakash/pr_tracker_t-backend:latest
+    build:
+      context: ./pr-tracker-backend
+      dockerfile: Dockerfile
+    container_name: pr-tracker-backend
+    ports:
+      - "5005:5005"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5005
+    networks:
+      - pr-tracker-net
+
+networks:
+  pr-tracker-net:
+    driver: bridge

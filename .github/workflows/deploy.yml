@@ -1,0 +1,94 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and Push Client Frontend
+      - name: Build and push Client
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-client
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client:latest
+          build-args: |
+            VITE_SERVER_ENDPOINT=http://3.26.11.213
+
+      # Build and Push Backend
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
+      # Build and Push Main Backend
+      - name: Build and push Main Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-main-backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-main-backend:latest
+
+      # Build and Push AI Agent
+      - name: Build and push AI Agent
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-ai-agent
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ai-agent:latest
+
+      # Build and Push Service Router
+      - name: Build and push Service Router
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-service-router
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-service-router:latest
+
+      # Build and Push MongoDB Service
+      - name: Build and push MongoDB Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pr-tracker-mongodb
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-mongodb:latest
+
+  deploy-to-ec2:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute deployment commands on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/pr-tracker
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose pull
+            docker compose up -d --remove-orphans
