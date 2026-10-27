@@ -48,7 +48,7 @@ jobs:
 
       - name: Validate Docker Compose Configuration
         run: |
-          docker compose config
+          docker compose config --quiet
 
   # ----------------------------------------------------------------------
   # STAGE 2: Build & Push Multi-Service Docker Images
