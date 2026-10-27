@@ -160,18 +160,26 @@ jobs:
             mkdir -p /home/ubuntu/pr-tracker
             cd /home/ubuntu/pr-tracker
             
-            # Authenticate with GHCR
-            echo "${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Pull latest images
+            # Pull latest public images from GitHub Container Registry
+            echo "📦 Pulling latest container images..."
             docker compose pull
             
             # Recreate containers with zero downtime
+            echo "🔄 Launching updated services..."
             docker compose up -d --remove-orphans
             
-            # Wait for gateway to boot and verify health
+            # Wait for gateway to boot and verify health with retry loop
             echo "⏳ Verifying application health endpoint..."
-            sleep 10
-            curl -f http://localhost:5000/api/health || (echo "Health check failed!" && exit 1)
+            for i in {1..12}; do
+              if curl -s -f http://localhost:5000/api/health > /dev/null; then
+                echo "✅ Health check succeeded!"
+                break
+              fi
+              echo "Waiting for API Gateway to become ready... ($i/12)"
+              sleep 4
+            done
             
-            echo "✅ Deployment completed successfully!"
+            # Final check to print the output
+            curl -f http://localhost:5000/api/health
+            echo ""
+            echo "🎉 Deployment completed successfully!"
