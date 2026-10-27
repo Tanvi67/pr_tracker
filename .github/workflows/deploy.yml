@@ -36,10 +36,15 @@ jobs:
           cd pr-tracker-client
           npm ci
 
-      - name: Run Client Linting & Type Check
+      - name: Run Client Linting
         run: |
           cd pr-tracker-client
           npm run lint --if-present
+
+      - name: Validate Client Production Build
+        run: |
+          cd pr-tracker-client
+          npm run build
 
       - name: Validate Docker Compose Configuration
         run: |

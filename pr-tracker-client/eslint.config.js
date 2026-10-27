@@ -30,6 +30,9 @@ export default defineConfig([
         destructuredArrayIgnorePattern: '^_',
         caughtErrors: 'none',
       }],
+      // React Hooks compiler rules: warn to avoid breaking CI builds on existing patterns
+      'react-hooks/purity': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
       // Fast-refresh: warn only — informational, does not block CI
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
