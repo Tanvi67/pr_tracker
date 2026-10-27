@@ -2,12 +2,12 @@ version: "3.8"
 
 services:
   client:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-client:latest
+    image: ghcr.io/tanvi67/pr-tracker-client:latest
     build:
       context: ./pr-tracker-client
       dockerfile: Dockerfile
       args:
-        VITE_SERVER_ENDPOINT: http://3.26.11.213
+        VITE_SERVER_ENDPOINT: http://localhost:5000
     container_name: pr-tracker-client
     ports:
       - "80:80"
@@ -15,9 +15,10 @@ services:
       - service-router
     networks:
       - pr-tracker-net
+    restart: unless-stopped
 
   service-router:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-service-router:latest
+    image: ghcr.io/tanvi67/pr-tracker-service-router:latest
     build:
       context: ./pr-tracker-service-router
       dockerfile: Dockerfile
@@ -36,9 +37,10 @@ services:
       - mongodb
     networks:
       - pr-tracker-net
+    restart: unless-stopped
 
   main-backend:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-main-backend:latest
+    image: ghcr.io/tanvi67/pr-tracker-main-backend:latest
     build:
       context: ./pr-tracker-main-backend
       dockerfile: Dockerfile
@@ -52,9 +54,10 @@ services:
       - PORT=5002
     networks:
       - pr-tracker-net
+    restart: unless-stopped
 
   ai-agent:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-ai-agent:latest
+    image: ghcr.io/tanvi67/pr-tracker-ai-agent:latest
     build:
       context: ./pr-tracker-ai-agent
       dockerfile: Dockerfile
@@ -68,9 +71,10 @@ services:
       - PORT=5003
     networks:
       - pr-tracker-net
+    restart: unless-stopped
 
   mongodb:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-mongodb:latest
+    image: ghcr.io/tanvi67/pr-tracker-mongodb:latest
     build:
       context: ./pr-tracker-mongodb
       dockerfile: Dockerfile
@@ -84,9 +88,10 @@ services:
       - PORT=5004
     networks:
       - pr-tracker-net
+    restart: unless-stopped
 
   backend:
-    image: ghcr.io/satyam-prakash/pr_tracker_t-backend:latest
+    image: ghcr.io/tanvi67/pr-tracker-backend:latest
     build:
       context: ./pr-tracker-backend
       dockerfile: Dockerfile
@@ -100,6 +105,22 @@ services:
       - PORT=5005
     networks:
       - pr-tracker-net
+    restart: unless-stopped
+
+  nagios:
+    image: jasonrivers/nagios:latest
+    container_name: pr-tracker-nagios
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nagios/conf.d:/opt/nagios/etc/conf.d:ro
+    environment:
+      - NAGIOSADMIN_USER=nagiosadmin
+      - NAGIOSADMIN_PASS=admin123
+      - NAGIOS_TIMEZONE=UTC
+    networks:
+      - pr-tracker-net
+    restart: unless-stopped
 
 networks:
   pr-tracker-net:

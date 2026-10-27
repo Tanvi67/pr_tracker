@@ -1,0 +1,5 @@
+[pr_tracker_hosts]
+ec2_instance ansible_host=YOUR_EC2_PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=../pr-tracker.pem
+
+[pr_tracker_hosts:vars]
+ansible_python_interpreter=/usr/bin/python3

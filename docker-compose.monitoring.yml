@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  nagios:
+    image: jasonrivers/nagios:latest
+    container_name: pr-tracker-nagios
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nagios/conf.d:/opt/nagios/etc/conf.d:ro
+    environment:
+      - NAGIOSADMIN_USER=nagiosadmin
+      - NAGIOSADMIN_PASS=admin123
+      - NAGIOS_TIMEZONE=UTC
+    restart: unless-stopped
+    networks:
+      - pr-tracker-net
+
+networks:
+  pr-tracker-net:
+    name: pr-tracker-net
+    external: true

@@ -1,2 +1,20 @@
 *.pem
 .env
+node_modules/
+dist/
+.DS_Store
+
+# Nested duplicates
+pr-tracker-main-backend/pr-tracker-ai-agent/
+pr-tracker-main-backend/pr-tracker-backend/
+
+# Terraform local state and binaries
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+
+# Ansible local inventory and retry files
+ansible/inventory.ini
+*.retry
